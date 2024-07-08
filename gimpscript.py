@@ -89,7 +89,9 @@ def process_folder(folder_path):
             "gen_dynasty_names_l_english.yml": os.path.join('localization', 'english', 'dynasties'),
             "gen_religions_l_english.yml": os.path.join('localization', 'english', 'religion'),
             "gen_religions.txt": os.path.join('common', 'religion', 'religions'),
-            "gen_holy_sites.txt": os.path.join('common', 'religion', 'holy_sites')
+            "gen_holy_sites.txt": os.path.join('common', 'religion', 'holy_sites'),
+			"gen_hybrid_creation_names.txt": os.path.join('common', 'culture', 'creation_names'),
+			"gen_hybrid_cultures_l_english.yml": os.path.join('localization', 'english', 'culture')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
