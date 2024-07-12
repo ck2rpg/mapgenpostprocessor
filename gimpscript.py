@@ -110,7 +110,7 @@ def process_folder(folder_path):
             "player_stack_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "siege_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "special_building_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
-            "stack_locators.txt": os.path.join('gfx', 'map', 'map_object_data')
+            "stack_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "activities.txt": os.path.join('gfx', 'map', 'map_object_data')
         }
         lower_file = file.lower()
