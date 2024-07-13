@@ -68,10 +68,25 @@ def process_flatmap_image(folder_path):
     pdb.file_dds_save(image, image.active_layer, save_path, save_path, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0)
     pdb.gimp_image_delete(image)
 
+def replace_rivers_image(folder_path):
+    base_dir = os.path.dirname(folder_path)
+    replacers_image_path = os.path.join(folder_path, "rivers.png")
+    replacers_image = pdb.gimp_file_load(replacers_image_path, replacers_image_path)
+    replacers_layer = pdb.gimp_image_get_active_layer(replacers_image)
+    map_data_image_path = os.path.join(base_dir, 'map_data', "rivers.png")
+    map_data_image = pdb.gimp_file_load(map_data_image_path, map_data_image_path)
+    map_data_layer = pdb.gimp_image_get_active_layer(map_data_image)
+    pdb.gimp_edit_copy(replacers_layer)
+    floating_sel = pdb.gimp_edit_paste(map_data_layer, True)
+    pdb.gimp_floating_sel_anchor(floating_sel)
+    pdb.file_png_save(map_data_image, map_data_layer, map_data_image_path, map_data_image_path, 0, 4, 1, 0, 0, 0, 0)
+    pdb.gimp_image_delete(replacers_image)
+    pdb.gimp_image_delete(map_data_image)
+
 def process_folder(folder_path):
     # Call the new method to process the flatmap image
     process_flatmap_image(folder_path)
-    
+    replace_rivers_image(folder_path)
     for file in os.listdir(folder_path):
         full_path = os.path.join(folder_path, file)
         base_dir = os.path.dirname(folder_path)
@@ -111,7 +126,11 @@ def process_folder(folder_path):
             "siege_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "special_building_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "stack_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
-            "activities.txt": os.path.join('gfx', 'map', 'map_object_data')
+            "activities.txt": os.path.join('gfx', 'map', 'map_object_data'),
+			"tree_cypress_01_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+			"tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+			"tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+			"tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
