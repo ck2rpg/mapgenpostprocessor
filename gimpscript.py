@@ -3,9 +3,36 @@ import shutil
 import re
 from gimpfu import *
 
+def resize_image_to_match(src_image_path, dest_image_path):
+    src_image = pdb.gimp_file_load(src_image_path, src_image_path)
+    dest_image = pdb.gimp_file_load(dest_image_path, dest_image_path)
+    
+    new_width = pdb.gimp_image_width(src_image)
+    new_height = pdb.gimp_image_height(src_image)
+    
+    pdb.gimp_image_scale(dest_image, new_width, new_height)
+    pdb.gimp_file_save(dest_image, pdb.gimp_image_get_active_layer(dest_image), dest_image_path, dest_image_path)
+    
+    pdb.gimp_image_delete(src_image)
+    pdb.gimp_image_delete(dest_image)
+
+def calculate_blur_factor(original_width, new_width):
+    # Base blur factor for an 8,192x4,096 image is 16
+    base_blur_factor = 16
+    base_width = 8192
+    # Calculate the reduction ratio
+    reduction_ratio = float(new_width) / base_width
+    
+    # Adjust the blur factor and round to nearest integer
+    adjusted_blur_factor = base_blur_factor * reduction_ratio
+    return int(adjusted_blur_factor)
+
 def process_image(file_path, folder_path):
     image = pdb.gimp_file_load(file_path, file_path)
-    pdb.plug_in_gauss(image, image.active_layer, 16, 16, 0)
+    original_width = pdb.gimp_image_width(image)
+    new_width = pdb.gimp_image_width(image)
+    blur_factor = calculate_blur_factor(original_width, new_width)
+    pdb.plug_in_gauss(image, image.active_layer, blur_factor, blur_factor, 0)
     layer = pdb.gimp_image_get_active_layer(image)
     pdb.gimp_layer_flatten(layer)
     pdb.gimp_image_convert_grayscale(image)
@@ -16,6 +43,15 @@ def process_image(file_path, folder_path):
         "forest_pine_01_mask": ("tree_pine_01_a_mask.png", process_map_object_masks),
         "forestfloor_mask": ("tree_cypress_01_mask.png", process_map_object_masks),
         "desert_01_mask": ("tree_palm_01_mask.png", process_map_object_masks),
+		"black1_mask": ("reeds_01_mask.png", process_map_object_masks),
+		"black2_mask": ("steppe_bush_01_mask.png", process_map_object_masks),
+		"black3_mask": ("tree_jungle_01_d_mask.png", process_map_object_masks),
+		"black4_mask": ("tree_leaf_01_c_mask.png", process_map_object_masks),
+		"black5_mask": ("tree_leaf_01_mask.png", process_map_object_masks),
+		"black6_mask": ("tree_leaf_01_single_mask.png", process_map_object_masks),
+		"black7_mask": ("tree_leaf_02_mask.png", process_map_object_masks),
+		"black8_mask": ("tree_pine_01_b_mask.png", process_map_object_masks),
+		"black9_mask": ("tree_pine_impassable_01_a_mask.png", process_map_object_masks)
     }
     for pattern, (new_name, function) in processing_rules.items():
         if re.search(pattern, filename, re.IGNORECASE):
@@ -61,12 +97,22 @@ def process_palette_image(file_path, folder_path):
 def process_flatmap_image(folder_path):
     file_path = os.path.join(folder_path, 'papyrus.png')
     base_dir = os.path.dirname(folder_path)
-    save_path = os.path.join(base_dir, 'gfx', 'map', 'terrain', 'flatmap.dds')
-    image = pdb.gimp_file_load(file_path, file_path)
-    pdb.plug_in_gauss(image, image.active_layer, 7, 7, 0)
-    pdb.gimp_brightness_contrast(image.active_layer, -127, 0)
-    pdb.file_dds_save(image, image.active_layer, save_path, save_path, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0)
-    pdb.gimp_image_delete(image)
+    dest_image_path = os.path.join(base_dir, 'gfx', 'map', 'terrain', 'flatmap.dds')
+    
+    # Resize the destination image first
+    resize_image_to_match(file_path, dest_image_path)
+    
+    # Load images and calculate the blur factor
+    replacers_image = pdb.gimp_file_load(file_path, file_path)
+    original_width = pdb.gimp_image_width(replacers_image)
+    new_width = pdb.gimp_image_width(replacers_image)
+    blur_factor = calculate_blur_factor(original_width, new_width)
+    
+    # Apply blur and save
+    pdb.plug_in_gauss(replacers_image, replacers_image.active_layer, blur_factor, blur_factor, 0)
+    pdb.gimp_brightness_contrast(replacers_image.active_layer, -127, 0)
+    pdb.file_dds_save(replacers_image, replacers_image.active_layer, dest_image_path, dest_image_path, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0)
+    pdb.gimp_image_delete(replacers_image)
 
 def replace_rivers_image(folder_path):
     base_dir = os.path.dirname(folder_path)
@@ -74,6 +120,11 @@ def replace_rivers_image(folder_path):
     replacers_image = pdb.gimp_file_load(replacers_image_path, replacers_image_path)
     replacers_layer = pdb.gimp_image_get_active_layer(replacers_image)
     map_data_image_path = os.path.join(base_dir, 'map_data', "rivers.png")
+    
+    # Resize the destination image first
+    resize_image_to_match(replacers_image_path, map_data_image_path)
+    
+    # Now process and paste the image from the replacers folder
     map_data_image = pdb.gimp_file_load(map_data_image_path, map_data_image_path)
     map_data_layer = pdb.gimp_image_get_active_layer(map_data_image)
     pdb.gimp_edit_copy(replacers_layer)
@@ -127,10 +178,11 @@ def process_folder(folder_path):
             "special_building_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "stack_locators.txt": os.path.join('gfx', 'map', 'map_object_data'),
             "activities.txt": os.path.join('gfx', 'map', 'map_object_data'),
-			"tree_cypress_01_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
-			"tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
-			"tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
-			"tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated')
+            "tree_cypress_01_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+            "tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+            "tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+            "tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+			"01_gen_defines.txt": os.path.join('common', 'defines')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
