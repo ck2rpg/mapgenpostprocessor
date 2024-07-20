@@ -13,13 +13,13 @@ def replace_with_black(folder_path, file_names):
 def resize_image_to_match(src_image_path, dest_image_path):
     src_image = pdb.gimp_file_load(src_image_path, src_image_path)
     dest_image = pdb.gimp_file_load(dest_image_path, dest_image_path)
-    
+    #filler comment
     new_width = pdb.gimp_image_width(src_image)
     new_height = pdb.gimp_image_height(src_image)
-    
+    #filler comment
     pdb.gimp_image_scale(dest_image, new_width, new_height)
     pdb.gimp_file_save(dest_image, pdb.gimp_image_get_active_layer(dest_image), dest_image_path, dest_image_path)
-    
+    #filler comment
     pdb.gimp_image_delete(src_image)
     pdb.gimp_image_delete(dest_image)
 
@@ -29,7 +29,6 @@ def calculate_blur_factor(original_width, new_width):
     base_width = 8192
     # Calculate the reduction ratio
     reduction_ratio = float(new_width) / base_width
-    
     # Adjust the blur factor and round to nearest integer
     adjusted_blur_factor = base_blur_factor * reduction_ratio
     return int(adjusted_blur_factor)
@@ -105,16 +104,13 @@ def process_flatmap_image(folder_path):
     file_path = os.path.join(folder_path, 'papyrus.png')
     base_dir = os.path.dirname(folder_path)
     dest_image_path = os.path.join(base_dir, 'gfx', 'map', 'terrain', 'flatmap.dds')
-    
     # Resize the destination image first
     resize_image_to_match(file_path, dest_image_path)
-    
     # Load images and calculate the blur factor
     replacers_image = pdb.gimp_file_load(file_path, file_path)
     original_width = pdb.gimp_image_width(replacers_image)
     new_width = pdb.gimp_image_width(replacers_image)
     blur_factor = calculate_blur_factor(original_width, new_width)
-    
     # Apply blur and save
     pdb.plug_in_gauss(replacers_image, replacers_image.active_layer, blur_factor, blur_factor, 0)
     pdb.gimp_brightness_contrast(replacers_image.active_layer, -127, 0)
@@ -127,10 +123,8 @@ def replace_rivers_image(folder_path):
     replacers_image = pdb.gimp_file_load(replacers_image_path, replacers_image_path)
     replacers_layer = pdb.gimp_image_get_active_layer(replacers_image)
     map_data_image_path = os.path.join(base_dir, 'map_data', "rivers.png")
-    
     # Resize the destination image first
     resize_image_to_match(replacers_image_path, map_data_image_path)
-    
     # Now process and paste the image from the replacers folder
     map_data_image = pdb.gimp_file_load(map_data_image_path, map_data_image_path)
     map_data_layer = pdb.gimp_image_get_active_layer(map_data_image)
@@ -272,7 +266,6 @@ def process_folder(folder_path):
             process_image(full_path, folder_path)
         elif ("color_palette" in lower_file):
             process_texture_image(full_path, folder_path)
-    
     # Log message to console
     print("Your Gimp Process is complete. Don't forget to complete the rest of the steps!")
 
