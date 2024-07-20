@@ -3,6 +3,13 @@ import shutil
 import re
 from gimpfu import *
 
+def replace_with_black(folder_path, file_names):
+    black_image_path = os.path.join(folder_path, "black1_mask.png")
+    for file_name in file_names:
+        file_path = os.path.join(folder_path, file_name)
+        if not os.path.exists(file_path):
+            shutil.copy(black_image_path, file_path)
+
 def resize_image_to_match(src_image_path, dest_image_path):
     src_image = pdb.gimp_file_load(src_image_path, src_image_path)
     dest_image = pdb.gimp_file_load(dest_image_path, dest_image_path)
@@ -135,7 +142,76 @@ def replace_rivers_image(folder_path):
     pdb.gimp_image_delete(map_data_image)
 
 def process_folder(folder_path):
-    # Call the new method to process the flatmap image
+    unused_files = [
+        "beach_02_mask.png",
+		"beach_02_mediterranean_mask.png",
+        "beach_02_pebbles_mask.png",
+        "black2_mask.png",
+		"black3_mask.png",
+		"black4_mask.png",
+		"black5_mask.png",
+		"black6_mask.png",
+		"black7_mask.png",
+		"black8_mask.png",
+		"black9_mask.png",
+		"coastline_cliff_brown_mask.png",
+		"coastline_cliff_desert_mask.png",
+		"coastline_cliff_grey_mask.png",
+		"desert_01_mask.png",
+		"desert_02_mask.png",
+		"desert_cracked_mask.png",
+		"desert_flat_01_mask.png",
+		"desert_rocky_mask.png",
+		"desert_wavy_01_mask.png",
+		"drylands_01_cracked_mask.png",
+		"drylands_01_grassy_mask.png",
+		"drylands_01_mask.png",
+		"farmlands_01_mask.png",
+		"floodplains_01_mask.png",
+		"forest_jungle_01_mask.png",
+		"forest_leaf_01_mask.png",
+		"forest_pine_01_mask.png",
+		"forestfloor_02_mask.png",
+		"forestfloor_mask.png",
+		"hills_01_mask.png",
+		"hills_01_rocks_mask.png",
+		"hills_01_rocks_medi_mask.png",
+		"hills_01_rocks_small_mask.png",
+		"india_farmlands_mask.png",
+		"medi_dry_mud_mask.png",
+		"medi_farmlands_mask.png",
+		"medi_grass_01_mask.png",
+		"medi_grass_02_mask.png",
+		"medi_hills_01_mask.png",
+		"medi_lumpy_grass_mask.png",
+		"medi_noisy_grass_mask.png",
+		"mountain_02_b_mask.png",
+		"mountain_02_c_mask.png",
+		"mountain_02_d_mask.png",
+		"mountain_02_d_snow_mask.png",
+		"mountain_02_d_valleys_mask.png",
+		"mountain_02_desert_c_mask.png",
+		"mountain_02_desert_mask.png",
+		"mountain_02_mask.png",
+		"mountain_02_snow_mask.png",
+		"mud_wet_01_mask.png",
+		"northern_hills_01_mask.png",
+		"northern_plains_01_mask.png",
+		"oasis_mask.png",
+		"plains_01_desat_mask.png",
+		"plains_01_dry_mask.png",
+		"plains_01_dry_mud_mask.png",
+		"plains_01_mask.png",
+		"plains_01_noisy_mask.png",
+		"plains_01_rough_mask.png",
+		"snow_mask.png",
+		"steppe_01_mask.png",
+		"steppe_bushes_mask.png",
+		"steppe_rocks_mask.png",
+		"wetlands_02_mask.png",
+		"wetlands_02_mud_mask.png"
+    ]
+    replace_with_black(folder_path, unused_files)
     process_flatmap_image(folder_path)
     replace_rivers_image(folder_path)
     for file in os.listdir(folder_path):
@@ -182,7 +258,8 @@ def process_folder(folder_path):
             "tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
-			"01_gen_defines.txt": os.path.join('common', 'defines')
+            "01_gen_defines.txt": os.path.join('common', 'defines'),
+            "heightmap.heightmap": 'map_data'
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
