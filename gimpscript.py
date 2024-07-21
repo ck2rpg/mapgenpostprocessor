@@ -3,6 +3,10 @@ import shutil
 import re
 from gimpfu import *
 
+def create_folder_if_not_exists(folder_path):
+    if not os.path.exists(folder_path):
+        os.makedirs(folder_path)
+
 def replace_with_black(folder_path, file_names):
     black_image_path = os.path.join(folder_path, "black1_mask.png")
     for file_name in file_names:
@@ -136,6 +140,7 @@ def replace_rivers_image(folder_path):
     pdb.gimp_image_delete(map_data_image)
 
 def process_folder(folder_path):
+    create_folder_if_not_exists(os.path.join(folder_path, '..', 'gfx', 'FX'))
     unused_files = [
         "beach_02_mask.png",
 		"beach_02_mediterranean_mask.png",
@@ -253,7 +258,9 @@ def process_folder(folder_path):
             "tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "01_gen_defines.txt": os.path.join('common', 'defines'),
-            "heightmap.heightmap": 'map_data'
+            "heightmap.heightmap": 'map_data',
+			"pdxterrain.shader": os.path.join('gfx', 'fx'),
+			"pdxwater.shader": os.path.join('gfx', 'fx')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
