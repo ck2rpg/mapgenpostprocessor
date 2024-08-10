@@ -257,10 +257,11 @@ def process_folder(folder_path):
             "tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
+	    "gen_game_start.txt": os.path.join('common', 'on_action'),
             "01_gen_defines.txt": os.path.join('common', 'defines'),
             "heightmap.heightmap": 'map_data',
-			"pdxterrain.shader": os.path.join('gfx', 'fx'),
-			"pdxwater.shader": os.path.join('gfx', 'fx')
+	    "pdxterrain.shader": os.path.join('gfx', 'fx'),
+	    "pdxwater.shader": os.path.join('gfx', 'fx')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
