@@ -52,7 +52,7 @@ def process_image(file_path, folder_path):
         "forest_jungle_01_mask": ("tree_jungle_01_c_mask.png", process_map_object_masks),
         "forest_pine_01_mask": ("tree_pine_01_a_mask.png", process_map_object_masks),
         "forestfloor_mask": ("tree_cypress_01_mask.png", process_map_object_masks),
-        "desert_01_mask": ("tree_palm_01_mask.png", process_map_object_masks),
+        "black1_mask": ("tree_palm_01_mask.png", process_map_object_masks),
 		"black1_mask": ("reeds_01_mask.png", process_map_object_masks),
 		"black2_mask": ("steppe_bush_01_mask.png", process_map_object_masks),
 		"black3_mask": ("tree_jungle_01_d_mask.png", process_map_object_masks),
