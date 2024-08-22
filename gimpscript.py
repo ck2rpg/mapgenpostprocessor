@@ -7,30 +7,6 @@ def create_folder_if_not_exists(folder_path):
     if not os.path.exists(folder_path):
         os.makedirs(folder_path)
 
-def calculate_blur_factor(original_width, new_width, base_width, resolution, map_size):
-    # Determine the base blur factor based on map size
-    base_blur_factor = 16
-    if map_size == "8192x4096":
-        base_blur_factor = 16
-    elif map_size == "4096x2048":
-        base_blur_factor = 8  # base_blur_factor / 2
-    elif map_size == "2048x1024":
-        base_blur_factor = 4  # base_blur_factor / 4
-    elif map_size == "1024x512":
-        base_blur_factor = 2  # base_blur_factor / 8
-    else:
-        raise ValueError("Unexpected map size: {}".format(map_size))
-    # Calculate the reduction ratio
-    reduction_ratio = float(new_width) / base_width
-    adjusted_blur_factor = base_blur_factor * reduction_ratio
-    
-    # Check if resolution matches map size
-    if resolution == map_size:
-        # If resolution and map size are equal, no blur should be applied
-        adjusted_blur_factor = 0
-    
-    return int(adjusted_blur_factor)
-
 def replace_with_black(folder_path, file_names):
     black_image_path = os.path.join(folder_path, "black1_mask.png")
     for file_name in file_names:
@@ -41,72 +17,63 @@ def replace_with_black(folder_path, file_names):
 def resize_image_to_match(src_image_path, dest_image_path):
     src_image = pdb.gimp_file_load(src_image_path, src_image_path)
     dest_image = pdb.gimp_file_load(dest_image_path, dest_image_path)
+    #filler comment
     new_width = pdb.gimp_image_width(src_image)
     new_height = pdb.gimp_image_height(src_image)
+    #filler comment
     pdb.gimp_image_scale(dest_image, new_width, new_height)
     pdb.gimp_file_save(dest_image, pdb.gimp_image_get_active_layer(dest_image), dest_image_path, dest_image_path)
+    #filler comment
     pdb.gimp_image_delete(src_image)
     pdb.gimp_image_delete(dest_image)
 
-def read_settings(settings_file_path):
-    with open(settings_file_path, 'r') as f:
-        settings = f.readlines()
-    
-    resolution = None
-    map_size = None
-    
-    for line in settings:
-        if line.startswith("Resolution:"):
-            resolution = line.split("Resolution:")[1].strip()
-        elif line.startswith("Map Size:"):
-            map_size = line.split("Map Size:")[1].strip()
-    
-    return resolution, map_size
+def calculate_blur_factor(original_width, new_width):
+    # Base blur factor for an 8,192x4,096 image is 16
+    base_blur_factor = 16
+    base_width = 8192
+    # Calculate the reduction ratio
+    reduction_ratio = float(new_width) / base_width
+    # Adjust the blur factor and round to nearest integer
+    adjusted_blur_factor = base_blur_factor * reduction_ratio
+    return int(adjusted_blur_factor)
 
-def process_image(file_path, folder_path, resolution, map_size):
-    filename = os.path.basename(file_path)
+def process_image(file_path, folder_path):
     image = pdb.gimp_file_load(file_path, file_path)
     original_width = pdb.gimp_image_width(image)
     new_width = pdb.gimp_image_width(image)
-    base_width = 8192  # Assuming base width is 8192 for calculations
-    blur_factor = calculate_blur_factor(original_width, new_width, base_width, resolution, map_size)
-    if blur_factor == 0 and ("heightmap" in filename.lower()):
-        blur_factor = 4
-    if blur_factor > 0:
-        pdb.plug_in_gauss(image, image.active_layer, blur_factor, blur_factor, 0)
+    blur_factor = calculate_blur_factor(original_width, new_width)
+    pdb.plug_in_gauss(image, image.active_layer, blur_factor, blur_factor, 0)
     layer = pdb.gimp_image_get_active_layer(image)
     pdb.gimp_layer_flatten(layer)
     pdb.gimp_image_convert_grayscale(image)
+    filename = os.path.basename(file_path)
     base_dir = os.path.dirname(folder_path)
     processing_rules = {
         "forest_jungle_01_mask": ("tree_jungle_01_c_mask.png", process_map_object_masks),
         "forest_pine_01_mask": ("tree_pine_01_a_mask.png", process_map_object_masks),
         "forestfloor_mask": ("tree_cypress_01_mask.png", process_map_object_masks),
         "black1_mask": ("tree_palm_01_mask.png", process_map_object_masks),
-        "black1_mask": ("reeds_01_mask.png", process_map_object_masks),
-        "black2_mask": ("steppe_bush_01_mask.png", process_map_object_masks),
-        "black3_mask": ("tree_jungle_01_d_mask.png", process_map_object_masks),
-        "black4_mask": ("tree_leaf_01_c_mask.png", process_map_object_masks),
-        "black5_mask": ("tree_leaf_01_mask.png", process_map_object_masks),
-        "black6_mask": ("tree_leaf_01_single_mask.png", process_map_object_masks),
-        "black7_mask": ("tree_leaf_02_mask.png", process_map_object_masks),
-        "black8_mask": ("tree_pine_01_b_mask.png", process_map_object_masks),
-        "black9_mask": ("tree_pine_impassable_01_a_mask.png", process_map_object_masks)
+		"black1_mask": ("reeds_01_mask.png", process_map_object_masks),
+		"black2_mask": ("steppe_bush_01_mask.png", process_map_object_masks),
+		"black3_mask": ("tree_jungle_01_d_mask.png", process_map_object_masks),
+		"black4_mask": ("tree_leaf_01_c_mask.png", process_map_object_masks),
+		"black5_mask": ("tree_leaf_01_mask.png", process_map_object_masks),
+		"black6_mask": ("tree_leaf_01_single_mask.png", process_map_object_masks),
+		"black7_mask": ("tree_leaf_02_mask.png", process_map_object_masks),
+		"black8_mask": ("tree_pine_01_b_mask.png", process_map_object_masks),
+		"black9_mask": ("tree_pine_impassable_01_a_mask.png", process_map_object_masks)
     }
-    
     for pattern, (new_name, function) in processing_rules.items():
         if re.search(pattern, filename, re.IGNORECASE):
             new_save_path = os.path.join(base_dir, 'content_source', 'map_objects', 'masks', new_name)
             function(image, new_save_path)
-            break
-    
+            break  
     if "mask" in filename.lower():
         save_path = os.path.join(base_dir, 'gfx', 'map', 'terrain', filename)
     elif "heightmap" in filename.lower():
         save_path = os.path.join(base_dir, 'map_data', filename)
     else:
         save_path = os.path.join(folder_path, filename)
-    
     pdb.file_png_save(image, layer, save_path, save_path, 0, 4, 1, 0, 0, 0, 0)
     pdb.gimp_image_delete(image)
 
@@ -147,11 +114,9 @@ def process_flatmap_image(folder_path):
     replacers_image = pdb.gimp_file_load(file_path, file_path)
     original_width = pdb.gimp_image_width(replacers_image)
     new_width = pdb.gimp_image_width(replacers_image)
-    resolution, map_size = read_settings(os.path.join(folder_path, 'settings.txt'))
-    blur_factor = calculate_blur_factor(original_width, new_width, 8192, resolution, map_size)
+    blur_factor = calculate_blur_factor(original_width, new_width)
     # Apply blur and save
-    if blur_factor > 0:
-        pdb.plug_in_gauss(replacers_image, replacers_image.active_layer, blur_factor, blur_factor, 0)
+    pdb.plug_in_gauss(replacers_image, replacers_image.active_layer, blur_factor, blur_factor, 0)
     pdb.gimp_brightness_contrast(replacers_image.active_layer, -127, 0)
     pdb.file_dds_save(replacers_image, replacers_image.active_layer, dest_image_path, dest_image_path, 0, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0)
     pdb.gimp_image_delete(replacers_image)
@@ -175,9 +140,6 @@ def replace_rivers_image(folder_path):
     pdb.gimp_image_delete(map_data_image)
 
 def process_folder(folder_path):
-    settings_file_path = os.path.join(folder_path, 'settings.txt')
-    resolution, map_size = read_settings(settings_file_path)
-    
     create_folder_if_not_exists(os.path.join(folder_path, '..', 'gfx', 'FX'))
     unused_files = [
         "beach_02_mask.png",
@@ -251,7 +213,6 @@ def process_folder(folder_path):
     replace_with_black(folder_path, unused_files)
     process_flatmap_image(folder_path)
     replace_rivers_image(folder_path)
-    
     for file in os.listdir(folder_path):
         full_path = os.path.join(folder_path, file)
         base_dir = os.path.dirname(folder_path)
@@ -296,11 +257,11 @@ def process_folder(folder_path):
             "tree_jungle_01_c_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_palm_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
             "tree_pine_01_a_generator_1.txt": os.path.join('gfx', 'map', 'map_object_data', 'generated'),
-	        "gen_game_start.txt": os.path.join('common', 'on_action'),
+	    "gen_game_start.txt": os.path.join('common', 'on_action'),
             "01_gen_defines.txt": os.path.join('common', 'defines'),
             "heightmap.heightmap": 'map_data',
-	        "pdxterrain.shader": os.path.join('gfx', 'fx'),
-	        "pdxwater.shader": os.path.join('gfx', 'fx')
+	    "pdxterrain.shader": os.path.join('gfx', 'fx'),
+	    "pdxwater.shader": os.path.join('gfx', 'fx')
         }
         lower_file = file.lower()
         if lower_file in file_mappings:
@@ -310,10 +271,10 @@ def process_folder(folder_path):
         elif ("skin_palette" in lower_file or "eye_palette" in lower_file or "hair_palette" in lower_file):
             process_palette_image(full_path, folder_path)
         elif lower_file.endswith(".png") and ("heightmap" in lower_file or "mask" in lower_file):
-            process_image(full_path, folder_path, resolution, map_size)
+            process_image(full_path, folder_path)
         elif ("color_palette" in lower_file):
             process_texture_image(full_path, folder_path)
-    
+    # Log message to console
     print("Your Gimp Process is complete. Don't forget to complete the rest of the steps!")
 
 process_folder('C:\\Users\\YOURUSERNAME\\Documents\\Paradox Interactive\\Crusader Kings III\\mod\\YOURMODNAME\\replacers')
